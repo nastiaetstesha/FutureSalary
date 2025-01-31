@@ -8,46 +8,52 @@ def fetch_all_vacancies_sj(language, access_token):
     all_vacancies = []
     page = 0
     per_page = 100
+    moscow = 4
+    catalogues_development_id = 33
 
     while True:
         params = {
             "keyword": f"Программист {language}",
-            "town": 4,
-            "catalogues": 33,
+            "town": moscow,
+            "catalogues": catalogues_development_id,
             "page": page,
             "count": per_page
         }
         headers = {"X-Api-App-Id": access_token}
         response = requests.get(url, headers=headers, params=params)
-        if response.status_code != 200:
-            raise Exception(f"Ошибка: {response.status_code}, {response.text}")
+        response.raise_for_status()
 
-        data = response.json()
-        all_vacancies.extend(data.get("objects", []))
+        vacancies_data = response.json()
+        all_vacancies.extend(vacancies_data.get("objects", []))
 
-        if not data.get("more"):
+        if not vacancies_data.get("more"):
             break
         page += 1
 
-    return all_vacancies, data.get("total", 0)
+    return all_vacancies
 
 
-def calculate_statistics_sj(language, access_token):
-    vacancies, vacancies_found = fetch_all_vacancies_sj(language, access_token)
+def extract_salaries_sj(vacancies):
     salaries = []
     for vacancy in vacancies:
         payment_from = vacancy.get("payment_from")
         payment_to = vacancy.get("payment_to")
         currency = vacancy.get("currency")
-        if currency == "rub":
-            salary = predict_salary(payment_from, payment_to)
-            if salary is not None:
-                salaries.append(salary)
 
+        if currency == "rub":
+            predicted_salary = predict_salary(payment_from, payment_to)
+            if predicted_salary:
+                salaries.append(predicted_salary)
+
+    return salaries
+
+
+def calculate_statistics_sj(vacancies):
+    salaries = extract_salaries_sj(vacancies)
     average_salary = int(sum(salaries) / len(salaries)) if salaries else 0
 
     return {
-        "vacancies_found": vacancies_found,
+        "vacancies_found": len(vacancies),
         "vacancies_processed": len(salaries),
         "average_salary": average_salary
     }

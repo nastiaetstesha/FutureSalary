@@ -8,42 +8,45 @@ def fetch_all_vacancies_hh(language):
     all_vacancies = []
     page = 0
     per_page = 100
+    moscow = 1
 
     while True:
         params = {
             "text": f"Программист {language}",
-            "area": 1,
+            "area": moscow,
             "per_page": per_page,
             "page": page
         }
         response = requests.get(url, params=params)
-        if response.status_code != 200:
-            raise Exception(f"Ошибка: {response.status_code}, {response.text}")
+        response.raise_for_status()
 
-        data = response.json()
-        all_vacancies.extend(data.get("items", []))
+        vacancies_data = response.json()
+        all_vacancies.extend(vacancies_data.get("items", []))
 
-        if page >= data.get("pages") - 1:
+        if page >= vacancies_data.get("pages") - 1:
             break
         page += 1
 
-    return all_vacancies, data.get("found", 0)
+    return all_vacancies
 
 
-def calculate_statistics_hh(language):
-    vacancies, vacancies_found = fetch_all_vacancies_hh(language)
+def extract_salaries_hh(vacancies):
     salaries = []
     for vacancy in vacancies:
         salary = vacancy.get("salary")
         if salary and salary.get("currency") == "RUR":
-            salary = predict_salary(salary.get("from"), salary.get("to"))
-            if salary is not None:
-                salaries.append(salary)
+            predicted_salary = predict_salary(salary.get("from"), salary.get("to"))
+            if predicted_salary:
+                salaries.append(predicted_salary)
+    return salaries
 
+
+def calculate_statistics_hh(vacancies):
+    salaries = extract_salaries_hh(vacancies)
     average_salary = int(sum(salaries) / len(salaries)) if salaries else 0
 
     return {
-        "vacancies_found": vacancies_found,
+        "vacancies_found": len(vacancies),
         "vacancies_processed": len(salaries),
         "average_salary": average_salary
     }
