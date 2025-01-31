@@ -34,10 +34,12 @@ def extract_salaries_hh(vacancies):
     salaries = []
     for vacancy in vacancies:
         salary = vacancy.get("salary")
-        if salary and salary.get("currency") == "RUR":
-            predicted_salary = predict_salary(salary.get("from"), salary.get("to"))
-            if predicted_salary:
-                salaries.append(predicted_salary)
+        if not salary or salary.get("currency") != "RUR":
+            continue
+
+        predicted_salary = predict_salary(salary.get("from"), salary.get("to"))
+        if predicted_salary:
+            salaries.append(predicted_salary)
     return salaries
 
 
