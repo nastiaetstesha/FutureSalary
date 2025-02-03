@@ -48,12 +48,11 @@ def extract_salaries_sj(vacancies):
     return salaries
 
 
-def calculate_statistics_sj(vacancies):
-    salaries = extract_salaries_sj(vacancies)
-    average_salary = int(sum(salaries) / len(salaries)) if salaries else 0
+def calculate_statistics_sj(vacancies, sj_salaries):
+    average_salary = int(sum(sj_salaries) / len(sj_salaries)) if sj_salaries else 0
 
     return {
         "vacancies_found": len(vacancies),
-        "vacancies_processed": len(salaries),
+        "vacancies_processed": len(sj_salaries),
         "average_salary": average_salary
     }

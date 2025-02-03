@@ -43,12 +43,11 @@ def extract_salaries_hh(vacancies):
     return salaries
 
 
-def calculate_statistics_hh(vacancies):
-    salaries = extract_salaries_hh(vacancies)
-    average_salary = int(sum(salaries) / len(salaries)) if salaries else 0
+def calculate_statistics_hh(vacancies, hh_salaries):
+    average_salary = int(sum(hh_salaries) / len(hh_salaries)) if hh_salaries else 0
 
     return {
         "vacancies_found": len(vacancies),
-        "vacancies_processed": len(salaries),
+        "vacancies_processed": len(hh_salaries),
         "average_salary": average_salary
     }
